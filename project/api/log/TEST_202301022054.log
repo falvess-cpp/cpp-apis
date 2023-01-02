@@ -1,0 +1,8 @@
+02/01/2023 20:54:36.896---{ Enter 'void TestImpl::init()' (testImpl.cpp#37)
+02/01/2023 20:54:36.896---} Exit 'init' (testImpl.cpp#41)
+02/01/2023 20:54:36.896---{ Enter 'void TestImpl::run()' (testImpl.cpp#46)
+INFORM-----testImpl.cpp#48 02/01/2023 20:54:36.896 TEST API started!
+02/01/2023 20:54:36.896---{ Enter 'void TestProcessor::makeTest()' (testProcessor.cpp#37)
+02/01/2023 20:54:36.896---} Exit 'makeTest' (testProcessor.cpp#42)
+INFORM-----testImpl.cpp#53 02/01/2023 20:54:36.896 TEST API ended.
+02/01/2023 20:54:36.896---} Exit 'run' (testImpl.cpp#55)
