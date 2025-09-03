@@ -5,25 +5,35 @@
 	@history    1.0      Initial version 
 	@date 		04-25-2022
 ***********************************************************************/
-#include <string>
-
 #include "fserror.hpp"
 
-using namespace std;
-
-
-FsError::FsError(ERROR_TYPE eType)
+FsError::FsError(ErrorType type) : errorType(type)
 { 
-	switch(eType)
+	switch(type)
 	{
-		case SUCCESS : message = "SUCCESS"; break;
-		case FILE_NOT_FOUND : message = "FILE_NOT_FOUND"; break;
-		case UNKNOW_ERROR : message = "UNKNOW_ERROR"; break;
-		case NULL_POINTER : message = "NULL_POINTER"; break;
+        case ErrorType::Success:
+            message = "SUCCESS";
+            break;
+        case ErrorType::FileNotFound:
+            message = "FILE_NOT_FOUND";
+            break;
+        case ErrorType::NullPointer:
+            message = "NULL_POINTER";
+            break;
+        case ErrorType::UnknownError:
+            message = "UNKNOWN_ERROR";
+            break;
+        default:
+            message = "UNRECOGNIZED_ERROR";
+            break;
 
 	}
 }	
 	
-FsError::~FsError() 
-{ 
-}  
+std::string FsError::getMessage() const {
+    return message;
+}
+
+ErrorType FsError::getType() const {
+    return errorType;
+}

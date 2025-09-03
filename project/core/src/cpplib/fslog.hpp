@@ -2,36 +2,30 @@
 #define LOG_HPP
 
 #include <string>
-#include <list>
 #include <unordered_map>
-
 #include "fsexc.hpp"
 #include "fsdate.hpp"
 
 #define FUNC_ENTRY() \
-	if (getenv("LOG_LEVEL") && string(getenv("LOG_LEVEL")) == "DEBUG") { \
+	if (getenv("LOG_LEVEL") && std::string(getenv("LOG_LEVEL")) == "DEBUG") { \
 		std::cout << FsDate().getDatems() << "---{ Enter '"  << __PRETTY_FUNCTION__ << "' (" << __FILE__ << "#" << __LINE__ << ")" << std::endl; \
 	} 
 	
 #define FUNC_EXIT() \
-	if (getenv("LOG_LEVEL") && string(getenv("LOG_LEVEL")) == "DEBUG") { \
+	if (getenv("LOG_LEVEL") && std::string(getenv("LOG_LEVEL")) == "DEBUG") { \
 	std::cout << FsDate().getDatems() << "---} Exit '"  << __FUNCTION__ << "' (" << __FILE__ << "#" << __LINE__ << ")" << std::endl; \
 	} 
-	
-using namespace std;
 
-enum LOG_TYPE 
-{ 
-	ERROR = 0,
-	WARN = 1,
-	INFORM = 2,
-	TRACE = 3
+enum class LogType {
+    Error = 0,
+    Warn,
+    Inform,
+    Trace
 };
 
-enum LOG_LEVEL 
-{ 
-	DEBUG = 0,
-	NORMAL = 1
+enum class LogLevel {
+    Debug = 0,
+    Normal
 };
 
 class FsLog
@@ -39,25 +33,28 @@ class FsLog
 private:
 	bool debugModeOn;
 public:
-	static const string Debug;
-	static const string Normal;	
-	unordered_map<string, string> config_map;
+    static const std::string Debug;
+    static const std::string Normal;
+	
+	std::unordered_map<std::string, std::string> configMap;
+	
 	FsLog();		
-	~FsLog();
-	LOG_LEVEL getLogLevel();
+	~FsLog() = default;
 	
 	/** Loads the environment vars */
 	void init();
 	
 	/** Loads sys configuration */
-	void loadConfig(const string& path, const string& file);
+	void loadConfig(const std::string& path, const std::string& file);
 	
-	bool isDebugModeOn();
+	bool isDebugModeOn() const;
+	LogLevel getLogLevel() const;
 	
 	/** log message */
-	void logMessage(LOG_TYPE logType, const string& fileName, unsigned long lineNumber, const string& message);
+	void logMessage(LogType logType, const std::string& fileName, unsigned long lineNumber, const std::string& message);
 	
-	static string getLogType(LOG_TYPE eLogType);	
+	static std::string getLogType(LogType logType);	
 };
 
 #endif // LOG_HPP 
+

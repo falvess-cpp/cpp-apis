@@ -5,161 +5,121 @@
 	@history    1.0      Initial version 
 	@date 		04-25-2022
 ***********************************************************************/
-#include <sys/timeb.h>
-#include <string>
-#include <ctime>
-#include <iostream>
-#include <chrono>
-#include <sstream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <sys/time.h>
-
 #include "fsdate.hpp"
-#include "fsexc.hpp"
 
-using namespace std;
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
 
-FsDate::FsDate()
-{
-	auto d = std::chrono::system_clock::now();
-	time_t t = std::chrono::system_clock::to_time_t(d);
-    tm dt = *localtime(&t);
-	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d.time_since_epoch()) % 1000;
-	 
-	miYear = dt.tm_year + 1900;
-	miMonth = dt.tm_mon + 1;
-	miDay = dt.tm_mday;
-	miHour = dt.tm_hour;
-	miMin = dt.tm_min;
-	miSec = dt.tm_sec;
-	miMill = ms.count();
+namespace {
+    std::string formatCurrentDate(DateFormat format) {
+        using namespace std::chrono;
+
+        auto now = system_clock::now();
+        auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+        std::time_t t = system_clock::to_time_t(now);
+        std::tm local_tm = *std::localtime(&t);
+
+        std::ostringstream oss;
+
+        switch (format) {
+            case DateFormat::Date:
+                oss << std::put_time(&local_tm, "%Y/%m/%d");
+                break;
+
+            case DateFormat::DateTime:
+                oss << std::put_time(&local_tm, "%Y/%m/%d %H:%M:%S");
+                break;
+
+            case DateFormat::DateTimeMs:
+                oss << std::put_time(&local_tm, "%Y/%m/%d %H:%M:%S")
+                    << '.' << std::setfill('0') << std::setw(3) << ms.count();
+                break;
+        }
+
+        return oss.str();
+    }
 }
 
+FsDate::FsDate() {
+    using namespace std::chrono;
+
+    auto now = system_clock::now();
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+    std::time_t t = system_clock::to_time_t(now);
+    std::tm local_tm = *std::localtime(&t);
+
+    miYear  = local_tm.tm_year + 1900;
+    miMonth = local_tm.tm_mon + 1;
+    miDay   = local_tm.tm_mday;
+    miHour  = local_tm.tm_hour;
+    miMin   = local_tm.tm_min;
+    miSec   = local_tm.tm_sec;
+    miMill  = static_cast<int>(ms.count());
+}
 
 FsDate::FsDate(unsigned int year, 
-			unsigned int month, 
-			unsigned int day, 
-			unsigned int hour, 
-			unsigned int min, 
-			unsigned int sec, 
-			unsigned int mill) 
-			: miYear(year)
-			, miMonth(month)
-			, miDay(day)
-			, miHour(hour)
-			, miMin(min)
-			, miSec(sec)
-			, miMill(mill)
+               unsigned int month, 
+               unsigned int day, 
+               unsigned int hour, 
+               unsigned int min, 
+               unsigned int sec, 
+               unsigned int mill)
+    : miYear(year)
+    , miMonth(month)
+    , miDay(day)
+    , miHour(hour)
+    , miMin(min)
+    , miSec(sec)
+    , miMill(mill)
 {
-}
-			
-FsDate::FsDate(const FsDate& obj)
-{
-	miYear = obj.miYear;
-	miMonth = obj.miMonth;
-	miDay = obj.miDay;
-	miHour = obj.miHour;
-	miMin = obj.miMin;
-	miSec = obj.miSec;
-	miMill = obj.miMill;
-}
+    if (month < 1 || month > 12)
+        throw std::invalid_argument("Invalid month: must be between 1 and 12");
 
-FsDate& FsDate::operator=(const FsDate& obj)
-{
-	miYear = obj.miYear;
-	miMonth = obj.miMonth;
-	miDay = obj.miDay;
-	miHour = obj.miHour;
-	miMin = obj.miMin;
-	miSec = obj.miSec;
-	miMill = obj.miMill;
-	return *this;
+    if (day < 1 || day > 31)
+        throw std::invalid_argument("Invalid day: must be between 1 and 31");
+
+    if (hour > 23)
+        throw std::invalid_argument("Invalid hour: must be between 0 and 23");
+
+    if (min > 59)
+        throw std::invalid_argument("Invalid minute: must be between 0 and 59");
+
+    if (sec > 59)
+        throw std::invalid_argument("Invalid second: must be between 0 and 59");
+
+    if (mill > 999)
+        throw std::invalid_argument("Invalid millisecond: must be between 0 and 999");
 }
 
-string FsDate::today(DT_FORMAT type)
-{
-	FUNC_TRY();
-	
-	char * str = new char[50 + 1];
-	time_t ltime;
-	struct tm* today;
-	string mi = "";
-
-    struct timeb now;
-
-    ftime( &now );
-
-	time(&ltime);
-	today = localtime(&ltime);
-	
-	switch(type)
-	{
-		case DATE:
-			strftime(str, 50, "%Y/%m/%d", today);
-			break;
-			
-		case DATETIME:
-			strftime(str, 50, "%Y/%m/%d %H:%M:%S", today);
-			break;	
-
-		case DATETIMEMS:
-			strftime(str, 50, "%Y/%m/%d %H:%M:%S", today);
-			mi = "." + to_string(now.millitm);
-			break;				
-	}
-	
-    string dtStr(str);
-    return dtStr + mi;	
-	
-	FUNC_CATCH();
+std::string FsDate::today(DateFormat format) {
+    return formatCurrentDate(format);
 }
 
-string FsDate::getDate(DT_FORMAT type)
-{
-	FsDate date;
-	stringstream sstm;
-	
-	switch(type)
-	{
-		case DATE:
-			sstm << (date.miYear) << '/' << (date.miMonth) << '/' << (date.miDay);
-			break;
-			
-		case DATETIME:
-			sstm << (date.miYear) << '/' << (date.miMonth) << '/' << (date.miDay) << ' ';
-			sstm << (date.miHour) << ':' << (date.miMin) << ':' << (date.miSec);
-			break;
-
-		case DATETIMEMS:
-			sstm << (date.miYear) << '/' << (date.miMonth) << '/' << (date.miDay) << ' ';
-			sstm << (date.miHour) << ':' << (date.miMin) << ':' << (date.miSec) << ':' << (date.miMill);
-			break;			
-	}
-
-    string dtStr = sstm.str();
-    return dtStr;	
+std::string FsDate::getDate(DateFormat format) {
+	return formatCurrentDate(format);
 }
 
-string FsDate::getDatems() {
-	char * str = new char[50 + 1];
-	struct tm *today;
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	time_t t = now.tv_sec;
-	today = localtime (&t);
+std::string FsDate::getDateWithMs() {
+    using namespace std::chrono;
 
-    (void)sprintf(str,
-                  "%02d/%02d/%4d %02d:%02d:%02d.%03d",
-                  today->tm_mday,
-                  today->tm_mon + 1,
-                  (today->tm_year + 1900),
-                  today->tm_hour,
-                  today->tm_min,
-                  today->tm_sec,
-				  (int) (now.tv_usec/1000));
-				  
-	 string dtStr(str);
-    return dtStr;	
+    // Get current time point
+    auto now = system_clock::now();
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+    // Convert to time_t for formatting
+    std::time_t t = system_clock::to_time_t(now);
+    std::tm local_tm = *std::localtime(&t);
+
+    // Format the date and time with milliseconds
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%d/%m/%Y %H:%M:%S")
+        << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+    return oss.str();
 }
+

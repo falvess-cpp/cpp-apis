@@ -1,22 +1,27 @@
 #ifndef FSERROR_HPP
 #define FSERROR_HPP
 
-enum ERROR_TYPE 
-{ 
-	SUCCESS = 0,
-	FILE_NOT_FOUND = 1000,
-	NULL_POINTER = 1001,
-	UNKNOW_ERROR = 1100
+#include <string>
+
+enum class ErrorType {
+    Success = 0,
+    FileNotFound = 1000,
+    NullPointer = 1001,
+    UnknownError = 1100
 };
 
 class FsError
 {
 private:
-	string message;
-	ERROR_TYPE errorType;
+	std::string message;
+	ErrorType errorType;
 public:
-	FsError(ERROR_TYPE eType);		
-	~FsError();
+	explicit FsError(ERROR_TYPE eType);		
+	~FsError() = default;
+	
+    std::string getMessage() const;
+    ErrorType getType() const;	
 };
 
 #endif // FSERROR_HPP   
+

@@ -5,78 +5,65 @@
 	@history    1.0      Initial version 
 	@date 		04-25-2022
 ***********************************************************************/
-
-#include <string>
-#include <list>
-#include <iostream>
+#include "fsexc.hpp"
 #include <sstream>
 
-#include "fsexc.hpp"
-
-using namespace std;
-
-FsExceptionLocation::FsExceptionLocation(const string& fileName, const string& methodName, unsigned long lineNumber)
-	: mFileName(fileName), mMethodName(methodName), mlLineNumber(lineNumber)
+FsExceptionLocation::FsExceptionLocation(const std::string& fileName, const std::string& methodName, unsigned long lineNumber)
+	: mFileName(fileName), mMethodName(methodName), mLineNumber(lineNumber)
 {
 }
 	
-FsExceptionLocation::FsExceptionLocation(const FsExceptionLocation& location) : mlLineNumber(0)
+FsExceptionLocation::FsExceptionLocation(const FsExceptionLocation& location) 
+	: mFileName(location.mFileName), mMethodName(location.mMethodName), mLineNumber(location.mLineNumber)
 {	
-	*this = location;	
 }
 	
-FsExceptionLocation::FsExceptionLocation() : mlLineNumber(0)
+FsExceptionLocation::FsExceptionLocation() : mLineNumber(0)
 { 
 }	
-	
-FsExceptionLocation::~FsExceptionLocation() 
-{ 
-}
-	
+
 FsExceptionLocation& FsExceptionLocation::operator=(const FsExceptionLocation& location)
 {
 	if (this != &location)
 	{
 		mFileName = location.mFileName;
 		mMethodName = location.mMethodName;
-		mlLineNumber = location.mlLineNumber;
+		mLineNumber = location.mLineNumber;
 	}
 	
 	return *this;	
 }
-	
-const string& FsExceptionLocation::getFileName() const
+
+const std::string& FsExceptionLocation::getFileName() const
 {
 	return mFileName;
 }
 	
-const string& FsExceptionLocation::getMethodName() const
+const std::string& FsExceptionLocation::getMethodName() const
 {
 	return mMethodName;
 }
 	
 unsigned long FsExceptionLocation::getLineNumber() const
 {
-	return mlLineNumber;
+	return mLineNumber;
 }
-	
-string FsExceptionLocation::getLocation() const
-{
-	string loc = "File: " + getFileName() + "  Function: " + getMethodName() + "  Line: " + to_string(getLineNumber());
-	return (loc);	
+
+std::string FsExceptionLocation::getLocation() const {
+    return "File: " + mFileName + "  Function: " + mMethodName + "  Line: " + std::to_string(mLineNumber);
 }
-	
-FsException::FsException(unsigned long errorId, const string& errorMsg)
-	: mlErrorId(errorId), mErrorMsg(errorMsg)
+
+FsException::FsException(unsigned long errorId, const std::string& errorMsg)
+	: mErrorId(errorId), mErrorMsg(errorMsg)
 {
 }
 
-FsException::FsException(const FsException& exception) : mlErrorId(0)
+FsException::FsException(const FsException& exception)
+	: mErrorId(exception.mErrorId), mErrorMsg(exception.mErrorMsg), mCallStack(exception.mCallStack)
 {
-		*this = exception;
 }
 
-FsException::FsException() : mlErrorId(0)
+FsException::FsException() : mErrorId(0)
 {
 }
 
@@ -84,53 +71,44 @@ FsException& FsException::operator=(const FsException& fsException)
 {
 	if (this != &fsException)
 	{
-		mlErrorId = fsException.mlErrorId;
+		mErrorId = fsException.mErrorId;
 		mErrorMsg = fsException.mErrorMsg;
+		mCallStack = fsException.mCallStack;
 	}
 	
 	return *this;
 }
 
-FsException::~FsException() 
-{ 	
-}
-
 unsigned long FsException::getErrorId() const
 {
-	return mlErrorId;
+	return mErrorId;
 }
 
-const string& FsException::getErrorMessage() const
+const std::string& FsException::getErrorMessage() const
 {
 	return mErrorMsg;
 }	
-	
-void FsException::printCallStack() const
-{
-    for (list<FsExceptionLocation>::const_iterator iter = mCallStack.begin(); iter != mCallStack.end(); iter++)
-    {
-        cout << "File: " << (*iter).getFileName() << " Method: " << (*iter).getMethodName() << " Line: " << (*iter).getLineNumber() << endl;
+
+void FsException::printCallStack() const {
+    for (const auto& location : mCallStack) {
+        std::cerr << location.getLocation() << std::endl;
     }
 }
 
-string FsException::getCallStack() const
-{
-    ostringstream callStackStream;
-	int cnt = 0;
-    for (list<FsExceptionLocation>::const_iterator iter = mCallStack.begin(); iter != mCallStack.end(); iter++)
-    {
-        if ( mCallStack.begin() != iter )
-        {
-            callStackStream << endl;
-        }
-			
-        callStackStream << "(" << ++cnt << ".) " << (*iter).getFileName() << " " << (*iter).getMethodName() << " " << (*iter).getLineNumber();
+std::string FsException::getCallStack() const {
+    std::ostringstream oss;
+    int count = 0;
+    for (const auto& location : mCallStack) {
+        if (count > 0) oss << "\n";
+        oss << "(" << ++count << ".) " << location.getLocation();
     }
-
-    return callStackStream.str();	
+    return oss.str();
 }
 
-const list<FsExceptionLocation>* FsException::getCallStackList() const
+
+
+
+const std::list<FsExceptionLocation>* FsException::getCallStackList() const
 {
 	return &mCallStack;
 }
@@ -140,19 +118,13 @@ void FsException::addToCallStack(const FsExceptionLocation& location)
     mCallStack.push_front(location);	
 }
 
-string FsException::buildError() const
-{
-    stringstream outputStream;
-	
-	outputStream << "-- Exception Ocurred -- " << endl;
-	outputStream << "Error ID: ";
-	if (getErrorId() == 0)
-		outputStream << "none";
-	else 
-		outputStream << getErrorId() << " - " << getErrorMessage();
-	outputStream << endl;
-	
-	string rc(outputStream.str());
-    return rc;	
+std::string FsException::buildError() const {
+    std::ostringstream oss;
+    oss << "-- Exception Occurred --\nError ID: ";
+    if (mErrorId == 0)
+        oss << "none";
+    else
+        oss << mErrorId << " - " << mErrorMsg;
+    oss << "\n";
+    return oss.str();
 }
-

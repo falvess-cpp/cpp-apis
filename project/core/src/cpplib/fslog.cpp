@@ -5,131 +5,82 @@
 	@history    1.0      Initial version 
 	@date 		04-25-2022
 ***********************************************************************/
-#include <string>
-#include <list>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <stdlib.h> 
-#include <unordered_map>
-
 #include "fslog.hpp"
-#include "fserror.hpp"
+#include <fstream>
+#include <sstream>
 
-using namespace std;
+const std::string FsLog::Debug = "DEBUG";
+const std::string FsLog::Normal = "NORMAL";
 
-const string FsLog::Debug = "DEBUG";
-const string FsLog::Normal = "NORMAL";
+FsLog::FsLog() {
+    init();
+}
 
-FsLog::FsLog()
-{ 
-	init();
-}	
+void FsLog::init() {
+    const char* logLevelEnv = std::getenv("LOG_LEVEL");
+    debugModeOn = (logLevelEnv && std::string(logLevelEnv) == "DEBUG");
+
+    const char* configPath = std::getenv("CONFIG_PATH");
+    const char* configFile = std::getenv("CONFIG_FILE");
+
+    if (configPath && configFile) {
+        loadConfig(configPath, configFile);
+    } else {
+        if (!configPath) {
+            logMessage(LogType::Warn, __FILE__, __LINE__, "Environment var CONFIG_PATH not set");
+        }
+        if (!configFile) {
+            logMessage(LogType::Warn, __FILE__, __LINE__, "Environment var CONFIG_FILE not set");
+        }
+    }
+}
+
+void FsLog::loadConfig(const std::string& path, const std::string& file) {
 	
-FsLog::~FsLog() 
-{ 
+    std::ifstream filestream(path + "/" + file);
+    if (!filestream.is_open()) {
+        logMessage(LogType::Warn, __FILE__, __LINE__, "Unable to open file " + file);
+        return;
+    }
+
+    std::string line;
+    while (std::getline(filestream, line)) {
+        if (line.empty() || line[0] == '#') continue;
+
+        auto pos = line.find(':');
+        if (pos == std::string::npos) continue;
+
+        std::string name = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
+        configMap[name] = value;
+    }
 }
 
-void FsLog::init()
-{
-	if (getenv("LOG_LEVEL") && string(getenv("LOG_LEVEL")) == "DEBUG")
-	{
-		debugModeOn = true;
-	}
-	else
-	{
-		debugModeOn = false;
-	}
-	
-	if (getenv("CONFIG_PATH") && getenv("CONFIG_FILE"))
-	{
-		string npath = getenv("CONFIG_PATH");
-		string nfile = getenv("CONFIG_FILE");
-		loadConfig(npath, nfile);
-	}
-	else
-	{
-		if (!getenv("CONFIG_PATH"))
-		{
-			logMessage(LOG_TYPE::WARN, __FILE__, __LINE__, "Environment var CONFIG_PATH not set");
-		}
-		
-		if (!getenv("CONFIG_FILE"))
-		{
-			logMessage(LOG_TYPE::WARN, __FILE__, __LINE__, "Environment var CONFIG_PATH not set");
-		}	
-	}
+bool FsLog::isDebugModeOn() const {
+    return debugModeOn;
 }
 
-void FsLog::loadConfig(const string& path, const string& file)
-{
-	string filename = path + "/" + file;
-	ifstream filestream;
-	filestream.open(filename);
-	if (filestream.is_open())
-	{
-		string line;
-		while (getline(filestream, line))
-		{
-			if (line[0] == '#' || line.empty())
-				continue;
-			auto pos = line.find(":");
-			auto name = line.substr(0, pos);
-			auto value = line.substr(pos + 1);
-			config_map[name] = value;	
-		}
-		filestream.close();
-	}
-	else
-	{
-		logMessage(LOG_TYPE::WARN, __FILE__, __LINE__, "Unable to open file " + file);
-		//throw FsException(ERROR_TYPE::FILE_NOT_FOUND, "unable to open file " + file);
-	}	
+LogLevel FsLog::getLogLevel() const {
+    const char* logLevelEnv = std::getenv("LOG_LEVEL");
+    return (logLevelEnv && std::string(logLevelEnv) == "DEBUG") ? LogLevel::Debug : LogLevel::Normal;
 }
 
-bool FsLog::isDebugModeOn()
-{
-	return debugModeOn;
+std::string FsLog::getLogType(LogType logType) {
+    switch (logType) {
+        case LogType::Error:  return "ERROR-----";
+        case LogType::Warn:   return "WARN------";
+        case LogType::Inform: return "INFORM----";
+        case LogType::Trace:  return "TRACE-----";
+        default:              return "UNKNOWN---";
+    }
 }
 
-LOG_LEVEL FsLog::getLogLevel()
-{
-	if (getenv("LOG_LEVEL") && string(getenv("LOG_LEVEL")) == "DEBUG")
-	{
-		return LOG_LEVEL::DEBUG;
-	}
-	else
-	{
-		return LOG_LEVEL::NORMAL;
-	}
-	
-	//unordered_map<string,string>::const_iterator it = config_map.find("LOG_LEVEL");
-	//if (it != config_map.end() && it->second == FsLog::Debug)
-		//return LOG_LEVEL::DEBUG;
-	//else
-		//return LOG_LEVEL::NORMAL;	
+void FsLog::logMessage(LogType logType, const std::string& fileName, unsigned long lineNumber, const std::string& message) {
+    if (isDebugModeOn() || logType != LogType::Trace) {
+        std::cout << getLogType(logType) << " "
+                  << fileName << "#" << lineNumber << " "
+                  << FsDate::getDateWithMs() << " "
+                  << message << std::endl;
+    }
 }
 
-string FsLog::getLogType(LOG_TYPE eLogType)
-{ 
-	switch(eLogType)
-	{
-		case ERROR : return "ERROR-----";
-		case WARN : return "WARN-----";
-		case INFORM : return "INFORM-----";
-		case TRACE : return "TRACE-----";
-
-	}
-}
-
-void FsLog::logMessage(LOG_TYPE logType, const string& fileName, unsigned long lineNumber, const string& message)
-{	
-	if (isDebugModeOn()) 
-	{
-		cout << getLogType(logType) << fileName << "#" << lineNumber << " " << FsDate().getDatems() << " " << message << endl;
-	}
-	else if (logType != LOG_TYPE::TRACE)
-	{
-		cout << getLogType(logType) << fileName << "#" << lineNumber << " " << FsDate().getDatems() << " " << message << endl;
-	}	
-}

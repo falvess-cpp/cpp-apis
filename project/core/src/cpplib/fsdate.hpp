@@ -3,14 +3,11 @@
 
 #include <string>
 
-using namespace std;
-
-enum DT_FORMAT 
-{ 
-	DATE,
-	DATETIME,
-	DATETIMEMS
-};	
+enum class DateFormat {
+    Date,
+    DateTime,
+    DateTimeMs
+};
 				
 class FsDate
 {
@@ -32,13 +29,15 @@ public:
 		   unsigned int min, 
 		   unsigned int sec, 
 		   unsigned int mill);	
-	FsDate(const FsDate& obj);
 	
-	FsDate& operator=(const FsDate&);		   
+    FsDate(const FsDate& obj) = default;
+    FsDate& operator=(const FsDate& obj) = default;	   
 	
-	static string today(DT_FORMAT type);
-	static string getDate(DT_FORMAT type);
-	static string getDatems();
+    // Static methods for formatted date/time strings
+    static std::string today(DateFormat format);
+    static std::string getDate(DateFormat format);
+    static std::string getDateWithMs();
 };
 
 #endif // FSDATE_HPP
+
