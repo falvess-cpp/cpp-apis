@@ -1,8 +1,8 @@
 #ifndef TEST_IMPL_HPP
 #define TEST_IMPL_HPP
 
-#include "fslog.hpp"
-			
+#include "fslogging.hpp"
+
 class TestImpl
 {
 private:

@@ -9,7 +9,7 @@ OBJ_DIR = obj
 # Object files
 OBJS = $(OBJ_DIR)/fsdate.o \
 	$(OBJ_DIR)/fsexc.o \
-	$(OBJ_DIR)/fslog.o	
+	$(OBJ_DIR)/fslogger.o
 
 MODULE = libfscore.so
 all: $(MODULE)

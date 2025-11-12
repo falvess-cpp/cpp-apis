@@ -2,9 +2,9 @@
 include ../../make_api.inc
 
 CC = /usr/bin/gcc
-INCS = -I/home/ubuntu/fabiano/cpp-apis/project/core/src/cpplib
+INCS = -I/home/falvess/FABIANO/repo/cpp-apis/project/core/src/cpplib
 LDFLAGS = -L/usr/lib -lstdc++ -lm \
-			-L/home/ubuntu/fabiano/cpp-apis/project/core/lib -lfscore
+			-L/home/falvess/FABIANO/repo/cpp-apis/project/core/lib -lfscore
 
 # Directory to put the objects
 OBJ_DIR = obj

@@ -1,0 +1,11 @@
+# Ignore object files
+# Ignore object files
+*.o
+
+# Ignore common executable names (adjust as necessary)
+TEST
+a.out
+
+# Ignore everything in all 'bin' directories
+**/bin/
+

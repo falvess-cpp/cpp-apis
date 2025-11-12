@@ -10,7 +10,6 @@
 #include <string>
 
 #include "testProcessor.hpp"
-#include "fslog.hpp"
 
 TestProcessor::TestProcessor()
 {
@@ -24,21 +23,11 @@ TestProcessor::~TestProcessor()
 	
 void TestProcessor::testError()
 {
-FUNC_ENTRY();
-FUNC_TRY();
-
-
-FUNC_CATCH();
-FUNC_EXIT();	
+	
 }
 
 void TestProcessor::makeTest()
 {
-FUNC_ENTRY();
-FUNC_TRY();
-
-
-FUNC_CATCH();
-FUNC_EXIT();		
+		
 }
 

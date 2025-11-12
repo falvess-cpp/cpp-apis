@@ -11,7 +11,7 @@
 
 #include "testImpl.hpp"
 #include "testProcessor.hpp"
-#include "fslog.hpp"
+#include "fslogging.hpp"
 
 TestImpl::TestImpl()
 {
@@ -34,23 +34,17 @@ TestImpl& TestImpl::operator=(const TestImpl& obj)
 	
 void TestImpl::init()
 {
-FUNC_ENTRY();
-FUNC_TRY();
-	log = FsLog();
-FUNC_CATCH();
-FUNC_EXIT();	
+LOG_FUNC_ENTRY();
+	LOG_INFO("log info message test");
+LOG_FUNC_EXIT();
 }
 
 void TestImpl::run()
 {
-FUNC_ENTRY();
-FUNC_TRY();
-	log.logMessage(LOG_TYPE::INFORM, __FILE__, __LINE__, "TEST API started!");
-	
+LOG_FUNC_ENTRY();
+LOG_WARN("API started");
 	TestProcessor tp;
 	tp.makeTest();
-
-	log.logMessage(LOG_TYPE::INFORM, __FILE__, __LINE__, "TEST API ended.");
-FUNC_CATCH();
-FUNC_EXIT();	
+LOG_WARN("API ended");	
+LOG_FUNC_EXIT();
 }
